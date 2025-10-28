@@ -1,0 +1,130 @@
+<!--Nome do aluno: Guilherme cruz -->
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Checkpoint 2 - Criptografia Clássica</title>
+  <style>
+    body { font-family: Arial; background:#f2f2f2; padding:20px; }
+    h1 { text-align:center; }
+    section { background:white; padding:15px; margin:15px auto; width:90%; max-width:500px; border-radius:10px; box-shadow:0 0 8px #ccc; }
+    input, textarea, button { width:100%; margin-top:8px; padding:8px; border-radius:6px; border:1px solid #ccc; font-size:15px; }
+    button { background:#007bff; color:white; cursor:pointer; }
+    button:hover { background:#0056b3; }
+    p.resultado { background:#eee; padding:10px; border-radius:6px; word-wrap:break-word; }
+  </style>
+</head>
+<body>
+
+  <h1>🔐 Checkpoint 2 - Criptografia Clássica</h1>
+
+  <section>
+    <h2>Atbash</h2>
+    <textarea id="msgAtbash" placeholder="Digite o texto..."></textarea>
+    <button onclick="mostrarAtbash()">Cifrar</button>
+    <p class="resultado" id="resAtbash"></p>
+  </section>
+
+  <section>
+    <h2>César</h2>
+    <textarea id="msgCesar" placeholder="Digite o texto..."></textarea>
+    <input type="number" id="chaveCesar" placeholder="Chave (ex: 3)">
+    <button onclick="mostrarCesar()">Cifrar</button>
+    <p class="resultado" id="resCesar"></p>
+  </section>
+
+  <section>
+    <h2>Vigenère</h2>
+    <textarea id="msgVig" placeholder="Digite o texto..."></textarea>
+    <input type="text" id="chaveVig" placeholder="Palavra-chave">
+    <button onclick="mostrarVig('codificar')">Codificar</button>
+    <button onclick="mostrarVig('decodificar')">Decodificar</button>
+    <p class="resultado" id="resVig"></p>
+  </section>
+
+  <section>
+    <h2>RSA Didático</h2>
+    <input type="text" id="msgRSA" placeholder="Mensagem (ex: OLA)">
+    <button onclick="mostrarRSA()">Cifrar e Decifrar</button>
+    <p class="resultado" id="resRSA"></p>
+  </section>
+
+<script>
+// === ATBASH ===
+function cifrarAtbash(msg){
+  let r="";
+  for(let c of msg){
+    if(c>='a'&&c<='z')r+=String.fromCharCode(122-(c.charCodeAt(0)-97));
+    else if(c>='A'&&c<='Z')r+=String.fromCharCode(90-(c.charCodeAt(0)-65));
+    else r+=c;
+  }
+  return r;
+}
+
+// === CÉSAR ===
+function cifrarCesar(msg,ch){
+  let r="";
+  for(let c of msg){
+    if(c>='a'&&c<='z')r+=String.fromCharCode((c.charCodeAt(0)-97+ch+26)%26+97);
+    else if(c>='A'&&c<='Z')r+=String.fromCharCode((c.charCodeAt(0)-65+ch+26)%26+65);
+    else r+=c;
+  }
+  return r;
+}
+
+// === VIGENERE ===
+function cifrarVigenere(msg,chave,modo='codificar'){
+  let r="",j=0,k,base,op=modo==='codificar'?1:-1;
+  for(let c of msg){
+    if(/[a-zA-Z]/.test(c)){
+      k=(chave[j%chave.length].toLowerCase().charCodeAt(0)-97)*op;
+      base=c===c.toLowerCase()?97:65;
+      r+=String.fromCharCode((c.charCodeAt(0)-base+k+26)%26+base);
+      j++;
+    }else r+=c;
+  }
+  return r;
+}
+
+// === RSA ===
+function gerarChavesRSA_Didaticas(p,q){
+  const N=p*q,phi=(p-1)*(q-1);
+  let E=3;while(E<phi&&(phi%E===0))E++;
+  let D=1;while((D*E)%phi!==1)D++;
+  return {publica:{E,N},privada:{D,N}};
+}
+function cifrarRSA_Didatico(msg,E,N){
+  return msg.split('').map(c=>Math.pow(c.charCodeAt(0),E)%N);
+}
+function decifrarRSA_Didatico(cif,D,N){
+  return cif.map(c=>String.fromCharCode(Math.pow(c,D)%N)).join('');
+}
+
+// === INTERFACE ===
+function mostrarAtbash(){
+  const msg=document.getElementById("msgAtbash").value;
+  document.getElementById("resAtbash").textContent=cifrarAtbash(msg);
+}
+function mostrarCesar(){
+  const msg=document.getElementById("msgCesar").value;
+  const chave=parseInt(document.getElementById("chaveCesar").value)||0;
+  document.getElementById("resCesar").textContent=cifrarCesar(msg,chave);
+}
+function mostrarVig(modo){
+  const msg=document.getElementById("msgVig").value;
+  const chave=document.getElementById("chaveVig").value;
+  document.getElementById("resVig").textContent=cifrarVigenere(msg,chave,modo);
+}
+function mostrarRSA(){
+  const msg=document.getElementById("msgRSA").value;
+  const chaves=gerarChavesRSA_Didaticas(17,19);
+  const cif=cifrarRSA_Didatico(msg,chaves.publica.E,chaves.publica.N);
+  const dec=decifrarRSA_Didatico(cif,chaves.privada.D,chaves.privada.N);
+  document.getElementById("resRSA").textContent=`Cifrado: [${cif.join(', ')}]\nDecifrado: ${dec}`;
+}
+</script>
+
+</body>
+</html>
